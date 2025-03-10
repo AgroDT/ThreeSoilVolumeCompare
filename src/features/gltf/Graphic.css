@@ -1,0 +1,11 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.canvas-container {
+  position: relative;
+  height: 800px;
+  width: 800px;
+}
