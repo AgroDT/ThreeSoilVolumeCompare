@@ -12,4 +12,7 @@ export default defineConfig({
     global: {},
   },
   publicDir: 'static',
+  optimizeDeps: {
+    exclude: ['@agrodt/three-zstd-volume-loader'],
+  },
 })

@@ -36,7 +36,7 @@ export const VolumeRendererComp: React.FC<IVolumeRendererProps> = ({shaderType})
     return () => {
       if (rendererRef.current) {
         containerRef.current?.removeChild(rendererRef.current.webGLRenderer.domElement);
-        rendererRef.current?.despose();
+        rendererRef.current?.dispose();
 
         rendererRef.current = null
       }
