@@ -1,6 +1,5 @@
 {
-  "name": "vtk-test-view",
-  "private": true,
+  "name": "three-soil-volume-compare",
   "version": "0.0.0",
   "type": "module",
   "scripts": {
