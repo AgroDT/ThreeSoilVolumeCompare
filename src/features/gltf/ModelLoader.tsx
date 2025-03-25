@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useEffect} from 'react';
 import {useGLTF, OrbitControls} from '@react-three/drei';
 import {AxesHelper, Box3, Mesh, Vector3} from 'three';
 import {useThree} from '@react-three/fiber';

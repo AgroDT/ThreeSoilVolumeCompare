@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {OrbitControls, OrbitControlsEventMap} from 'three/addons/controls/OrbitControls.js';
-import {ZstdRawVolumeLoader, Volume} from './zstd-raw-volume-loader';
+import {ZstdVolumeLoader, type Volume, loadZSTDDecLib} from '@agrodt/three-zstd-volume-loader';
 import {createShaderMaterial, IVolumeShaderUniforms, IClipPlanes} from './utils';
 import cmDefaultWebp from '../../../assets/cm-default.webp';
 
@@ -32,7 +32,7 @@ export class VolumeRenderer {
 
   controls: OrbitControls;
 
-  volumeLoader: ZstdRawVolumeLoader;
+  volumeLoader: ZstdVolumeLoader;
 
   colorMaps: Record<VolumeKind, THREE.Texture>;
 
@@ -51,7 +51,7 @@ export class VolumeRenderer {
   }: VolumeRendererInitializationOptions): Promise<VolumeRenderer> {
     const textureLoader = new THREE.TextureLoader();
     const [volumeLoader, cmDefault] = await Promise.all([
-      ZstdRawVolumeLoader.initialize(manager),
+      loadZSTDDecLib().then(zstd => new ZstdVolumeLoader(zstd, manager)),
       textureLoader.loadAsync(cmDefaultWebp),
     ]);
 
@@ -83,7 +83,7 @@ export class VolumeRenderer {
     renderer: THREE.WebGLRenderer,
     camera: THREE.OrthographicCamera,
     controls: OrbitControls,
-    volumeLoader: ZstdRawVolumeLoader,
+    volumeLoader: ZstdVolumeLoader,
     colorMaps: Record<VolumeKind, THREE.Texture>,
     shaderType: 'default' | 'custom',
     controlsEvents?: Partial<IControlsEventHandlers>,
@@ -166,8 +166,8 @@ export class VolumeRenderer {
     this.render();
   };
 
-  private onVolumeLoad = ({width, height, depth, data}: Volume, kind: VolumeKind) => {
-    const texture = new THREE.Data3DTexture(data, width, height, depth);
+  private onVolumeLoad = ({data, xSize, ySize, zSize}: Volume, kind: VolumeKind) => {
+    const texture = new THREE.Data3DTexture(data, xSize, ySize, zSize);
     texture.format = THREE.RedFormat;
     texture.minFilter = THREE.LinearFilter;
     texture.magFilter = THREE.LinearFilter;
@@ -176,23 +176,23 @@ export class VolumeRenderer {
 
     this.material = createShaderMaterial({
       data: texture,
-      size: new THREE.Vector3(width, height, depth),
+      size: new THREE.Vector3(xSize, ySize, zSize),
       cmData: this.colorMaps[kind],
       shaderType: this.shaderType,
       clipping: true,
     });
 
-    
-    const halfWidth = width / 2;
-    const halfHeight = height / 2;
-    const halfDepth = depth / 2;
 
-    const geometry = new THREE.BoxGeometry(width, height, depth);
+    const halfWidth = xSize / 2;
+    const halfHeight = ySize / 2;
+    const halfDepth = zSize / 2;
+
+    const geometry = new THREE.BoxGeometry(xSize, ySize, zSize);
     geometry.translate(halfWidth - 0.5, halfHeight - 0.5, halfDepth - 0.5);
-    
+
     const mesh = new THREE.Mesh(geometry, this.material);
     this.scene.add(mesh);
-    
+
     const renderSize = this.renderer.getSize(new THREE.Vector2());
     const factor = renderSize.width / renderSize.height / 0.75;
     const cameraPlane = Math.max(halfWidth, halfHeight, halfDepth) * factor;
@@ -204,14 +204,14 @@ export class VolumeRenderer {
     this.camera.updateProjectionMatrix();
 
     this.clipPlanes({xAxis: [0.5, 1.0], yAxis: [0.0, 1.0], zAxis: [0.0, 1.0]});
-    
+
     this.controls.target.set(halfWidth, halfHeight, halfDepth);
     this.controls.update();
 
     this.resize(renderSize.width, renderSize.height);
   };
 
-  public despose = () => {
+  public dispose = () => {
     while (this.scene.children.length > 0) {
       const object = this.scene.children[0];
       this.scene.remove(object);
