@@ -1,5 +1,5 @@
 import {useEffect, useRef} from 'react';
-import {VolumeKind, VolumeRenderer} from './utils/volume-renderer';
+import {initializeCustomVolumeRenderer, initializeDefaultVolumeRenderer, type VolumeRendererBase} from './utils/volume-renderer';
 
 import styles from './VolumeRenderer.module.scss';
 
@@ -9,7 +9,7 @@ interface IVolumeRendererProps {
 
 export const VolumeRendererComp: React.FC<IVolumeRendererProps> = ({shaderType}) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const rendererRef = useRef<VolumeRenderer | null>(null);
+  const rendererRef = useRef<VolumeRendererBase | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) {
@@ -18,11 +18,9 @@ export const VolumeRendererComp: React.FC<IVolumeRendererProps> = ({shaderType})
 
     const {width, height} = containerRef.current.getBoundingClientRect();
 
-    VolumeRenderer.initialize({
-      width,
-      height,
-      shaderType,
-    }).then(volumeRenderer => {
+    const initialize = shaderType === 'custom' ? initializeCustomVolumeRenderer : initializeDefaultVolumeRenderer;
+
+    initialize({width, height}).then(volumeRenderer => {
       if (rendererRef.current) {
         return;
       }
@@ -30,13 +28,13 @@ export const VolumeRendererComp: React.FC<IVolumeRendererProps> = ({shaderType})
       rendererRef.current = volumeRenderer
       containerRef.current?.appendChild(volumeRenderer.webGLRenderer.domElement);
       volumeRenderer.webGLRenderer.setPixelRatio(window.devicePixelRatio);
-      volumeRenderer.loadVolume(`${import.meta.env.VITE_REPO_NAME ?? ''}/g1r01-010_020-pores.raw.zst`, VolumeKind.PORES);
+      volumeRenderer.loadVolume(`${import.meta.env.VITE_REPO_NAME ?? ''}/g1r01-010_020-pores.raw.zst`);
     });
 
     return () => {
       if (rendererRef.current) {
         containerRef.current?.removeChild(rendererRef.current.webGLRenderer.domElement);
-        rendererRef.current?.dispose();
+        rendererRef.current.dispose();
 
         rendererRef.current = null
       }
@@ -44,7 +42,6 @@ export const VolumeRendererComp: React.FC<IVolumeRendererProps> = ({shaderType})
   }, [])
 
   return (
-
     <div ref={containerRef} className={styles.volumeRendererContainer}/>
   )
 }
