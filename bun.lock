@@ -4,6 +4,7 @@
     "": {
       "name": "three-soil-volume-compare",
       "dependencies": {
+        "@agrodt/three-soil-volume-shader": "^0.1.0",
         "@agrodt/three-zstd-volume-loader": "^0.1.1",
         "@react-three/drei": "^9.120.4",
         "@react-three/fiber": "^8.17.10",
@@ -38,6 +39,8 @@
     "@parcel/watcher",
   ],
   "packages": {
+    "@agrodt/three-soil-volume-shader": ["@agrodt/three-soil-volume-shader@0.1.0", "", { "peerDependencies": { "three": "^0.174" } }, "sha512-Ga7HyeP/d0Ra0eKb8fI9LR+cA9jB71HTTDMbIgRwS2vmUN2PcgQmrV3LciYA40YzSKiYS3MDdkVxwUT88uRjcQ=="],
+
     "@agrodt/three-zstd-volume-loader": ["@agrodt/three-zstd-volume-loader@0.1.1", "", { "peerDependencies": { "three": "^0.174.0" } }, "sha512-OBb/oVWNKNNa7FylIxlZpAehBoEB3HElku8idr4ZKTaovoNF7dWZBr2CfowwOLdzlDk7vUgZpu2rKl01rMWQ2A=="],
 
     "@babel/runtime": ["@babel/runtime@7.27.0", "", { "dependencies": { "regenerator-runtime": "^0.14.0" } }, "sha512-VtPOkrdPHZsKc/clNqyi9WUA8TINkZ4cGk63UUE3u4pmB2k+ZMQRDuIOagv8UVd6j7k0T3+RRIb7beKTebNbcw=="],

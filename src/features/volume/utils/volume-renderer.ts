@@ -1,29 +1,73 @@
 import * as THREE from 'three';
 import {OrbitControls, OrbitControlsEventMap} from 'three/addons/controls/OrbitControls.js';
 import {ZstdVolumeLoader, type Volume, loadZSTDDecLib} from '@agrodt/three-zstd-volume-loader';
-import {createShaderMaterial, IVolumeShaderUniforms, IClipPlanes} from './utils';
+import type {SoilShaderUniforms} from '@agrodt/three-soil-volume-shader';
+import {createCustomShaderMaterial, createDefaultShaderMaterial, IDefaultShaderUniforms} from './utils';
 import cmDefaultWebp from '../../../assets/cm-default.webp';
+
+const CAMERA_OFFSET_FACTOR = 1.75;
 
 type IControlsEventHandlers = Record<keyof OrbitControlsEventMap, THREE.EventListener<unknown, keyof OrbitControlsEventMap, OrbitControls>>;
 
 export interface VolumeRendererInitializationOptions {
   width: number,
   height: number,
-  shaderType: 'default' | 'custom',
   manager?: THREE.LoadingManager,
   controlsEvents?: Partial<IControlsEventHandlers>,
 }
 
-export enum VolumeKind {
-  SOLIDS = 'SOLIDS',
-  PORES = 'PORES'
+export function initializeDefaultVolumeRenderer(options: VolumeRendererInitializationOptions): Promise<DefaultVolumeRenderer> {
+  return initializeVolumeRendererResources(options).then(res => new DefaultVolumeRenderer(res));
+}
+
+export function initializeCustomVolumeRenderer(options: VolumeRendererInitializationOptions): Promise<CustomVolumeRenderer> {
+  return initializeVolumeRendererResources(options).then(res => new CustomVolumeRenderer(res));
 }
 
 type IRenderParameters = {
   renderThreshold: number,
 };
 
-export class VolumeRenderer {
+interface IVolumeRendererResources {
+  scene: THREE.Scene;
+  renderer: THREE.WebGLRenderer;
+  camera: THREE.OrthographicCamera;
+  controls: OrbitControls;
+  volumeLoader: ZstdVolumeLoader;
+  cmTexture: THREE.Texture;
+  controlsEvents?: Partial<IControlsEventHandlers>;
+}
+
+async function initializeVolumeRendererResources({
+  width,
+  height,
+  manager,
+  controlsEvents,
+}: VolumeRendererInitializationOptions): Promise<IVolumeRendererResources> {
+  const [volumeLoader, cmTexture] = await Promise.all([
+    loadZSTDDecLib().then(zstd => new ZstdVolumeLoader(zstd, manager)),
+    new THREE.TextureLoader().loadAsync(cmDefaultWebp),
+  ]);
+
+  const scene = new THREE.Scene();
+
+  const renderer = new THREE.WebGLRenderer({alpha: true});
+  renderer.localClippingEnabled = true;
+  renderer.setSize(width, height);
+
+  const camera = new THREE.OrthographicCamera();
+  camera.up.set(0, 0, 1);
+
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.minZoom = 1;
+  controls.maxZoom = 5;
+  controls.enablePan = false;
+  controls.update();
+
+  return {scene, renderer, camera, controls, volumeLoader, cmTexture, controlsEvents};
+}
+
+export abstract class VolumeRendererBase {
   scene: THREE.Scene;
 
   renderer: THREE.WebGLRenderer;
@@ -34,68 +78,28 @@ export class VolumeRenderer {
 
   volumeLoader: ZstdVolumeLoader;
 
-  colorMaps: Record<VolumeKind, THREE.Texture>;
+  cmTexture: THREE.Texture;
 
   material: THREE.ShaderMaterial | null = null;
 
   controlsEvents?: Partial<IControlsEventHandlers>;
 
-  shaderType: 'default' | 'custom';
-
-  public static async initialize({
-    width,
-    height,
-    manager,
-    shaderType,
+  constructor({
+    scene,
+    renderer,
+    camera,
+    controls,
+    volumeLoader,
+    cmTexture,
     controlsEvents,
-  }: VolumeRendererInitializationOptions): Promise<VolumeRenderer> {
-    const textureLoader = new THREE.TextureLoader();
-    const [volumeLoader, cmDefault] = await Promise.all([
-      loadZSTDDecLib().then(zstd => new ZstdVolumeLoader(zstd, manager)),
-      textureLoader.loadAsync(cmDefaultWebp),
-    ]);
-
-    const scene = new THREE.Scene();
-
-    const renderer = new THREE.WebGLRenderer({alpha: true});
-    renderer.localClippingEnabled = true;
-    renderer.setSize(width, height);
-
-    const camera = new THREE.OrthographicCamera();
-    camera.up.set(0, 0, 1);
-
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.minZoom = 1;
-    controls.maxZoom = 5;
-    controls.enablePan = false;
-    controls.update();
-
-    const colorMaps = {
-      [VolumeKind.SOLIDS]: cmDefault,
-      [VolumeKind.PORES]: cmDefault,
-    };
-
-    return new VolumeRenderer(scene, renderer, camera, controls, volumeLoader, colorMaps, shaderType, controlsEvents);
-  }
-
-  private constructor(
-    scene: THREE.Scene,
-    renderer: THREE.WebGLRenderer,
-    camera: THREE.OrthographicCamera,
-    controls: OrbitControls,
-    volumeLoader: ZstdVolumeLoader,
-    colorMaps: Record<VolumeKind, THREE.Texture>,
-    shaderType: 'default' | 'custom',
-    controlsEvents?: Partial<IControlsEventHandlers>,
-  ) {
+  }: IVolumeRendererResources) {
     this.scene = scene;
     this.renderer = renderer;
     this.camera = camera;
     this.controls = controls;
     this.volumeLoader = volumeLoader;
-    this.colorMaps = colorMaps;
+    this.cmTexture = cmTexture;
     this.controlsEvents = controlsEvents;
-    this.shaderType = shaderType;
 
     controls.addEventListener('change', this.render);
 
@@ -110,49 +114,11 @@ export class VolumeRenderer {
     return this.renderer;
   }
 
-  public resize = (width: number, height: number) => {
-    this.renderer.setSize(width, height);
-
-    const factor = width / height / 2;
-    const cameraPlane = (this.camera.top - this.camera.bottom) * factor;
-    this.camera.left = -cameraPlane;
-    this.camera.right = cameraPlane;
-    this.camera.updateProjectionMatrix();
-
-    this.render();
+  public loadVolume = (url: string) => {
+    this.volumeLoader.load(url, this.onVolumeLoad);
   };
 
-  public loadVolume = (url: string, kind: VolumeKind) => {
-    this.volumeLoader.load(url, volume => this.onVolumeLoad(volume, kind));
-  };
-
-  private render = () => {
-    this.renderer.render(this.scene, this.camera);
-  };
-
-  public setRenderParameters = ({renderThreshold}: IRenderParameters) => {
-    if (!this.material) {
-      return;
-    }
-
-    const uniforms = this.material.uniforms as IVolumeShaderUniforms;
-    uniforms.u_renderthreshold.value = renderThreshold;
-
-    this.render();
-  };
-
-  public clipPlanes = ({xAxis, yAxis, zAxis}: IClipPlanes) => {
-    if (!this.material) {
-      return;
-    }
-
-    const uniforms = this.material.uniforms as IVolumeShaderUniforms;
-
-    uniforms.u_min_distance.value = new THREE.Vector3(xAxis[0], yAxis[0], zAxis[0]);
-    uniforms.u_max_distance.value = new THREE.Vector3(xAxis[1], yAxis[1], zAxis[1]);
-
-    this.render();
-  };
+  public abstract setRenderParameters(parameters: IRenderParameters): void;
 
   public zoomIn = (step: number) => {
     this.camera.zoom = Math.min(this.camera.zoom + step, this.controls.maxZoom);
@@ -164,51 +130,6 @@ export class VolumeRenderer {
     this.camera.zoom = Math.max(this.camera.zoom - step, this.controls.minZoom);
     this.camera.updateProjectionMatrix();
     this.render();
-  };
-
-  private onVolumeLoad = ({data, xSize, ySize, zSize}: Volume, kind: VolumeKind) => {
-    const texture = new THREE.Data3DTexture(data, xSize, ySize, zSize);
-    texture.format = THREE.RedFormat;
-    texture.minFilter = THREE.LinearFilter;
-    texture.magFilter = THREE.LinearFilter;
-    texture.unpackAlignment = 1;
-    texture.needsUpdate = true;
-
-    this.material = createShaderMaterial({
-      data: texture,
-      size: new THREE.Vector3(xSize, ySize, zSize),
-      cmData: this.colorMaps[kind],
-      shaderType: this.shaderType,
-      clipping: true,
-    });
-
-
-    const halfWidth = xSize / 2;
-    const halfHeight = ySize / 2;
-    const halfDepth = zSize / 2;
-
-    const geometry = new THREE.BoxGeometry(xSize, ySize, zSize);
-    geometry.translate(halfWidth - 0.5, halfHeight - 0.5, halfDepth - 0.5);
-
-    const mesh = new THREE.Mesh(geometry, this.material);
-    this.scene.add(mesh);
-
-    const renderSize = this.renderer.getSize(new THREE.Vector2());
-    const factor = renderSize.width / renderSize.height / 0.75;
-    const cameraPlane = Math.max(halfWidth, halfHeight, halfDepth) * factor;
-    this.camera.left = -cameraPlane;
-    this.camera.right = cameraPlane;
-    this.camera.bottom = -cameraPlane;
-    this.camera.top = cameraPlane;
-    this.camera.position.set(0, 0, cameraPlane / 2);
-    this.camera.updateProjectionMatrix();
-
-    this.clipPlanes({xAxis: [0.5, 1.0], yAxis: [0.0, 1.0], zAxis: [0.0, 1.0]});
-
-    this.controls.target.set(halfWidth, halfHeight, halfDepth);
-    this.controls.update();
-
-    this.resize(renderSize.width, renderSize.height);
   };
 
   public dispose = () => {
@@ -230,7 +151,7 @@ export class VolumeRenderer {
       }
     }
 
-    Object.values(this.colorMaps).forEach(texture => texture.dispose());
+    this.cmTexture.dispose();
 
     if (this.controlsEvents) {
       Object.entries(this.controlsEvents).forEach(([event, handler]) => {
@@ -240,4 +161,101 @@ export class VolumeRenderer {
 
     this.renderer.dispose();
   };
+
+  protected render = () => {
+    this.renderer.render(this.scene, this.camera);
+  };
+
+  protected abstract getShaderMaterial(data: THREE.Data3DTexture, size: THREE.Vector3): THREE.ShaderMaterial;
+
+  private onVolumeLoad = ({data, xSize, ySize, zSize}: Volume) => {
+    const texture = new THREE.Data3DTexture(data, xSize, ySize, zSize);
+    texture.format = THREE.RedFormat;
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.unpackAlignment = 1;
+    texture.needsUpdate = true;
+
+    this.material = this.getShaderMaterial(texture, new THREE.Vector3(xSize, ySize, zSize));
+
+    const halfXSize = xSize / 2;
+    const halfYSize = ySize / 2;
+    const halfZSize = zSize / 2;
+
+    const geometry = new THREE.BoxGeometry(xSize, ySize, zSize)
+      .translate(halfXSize, halfYSize, halfZSize);
+
+    const mesh = new THREE.Mesh(geometry, this.material);
+    this.scene.add(mesh);
+
+    const renderSize = this.renderer.getSize(new THREE.Vector2());
+    const {horizontal, vertical} = VolumeRendererBase.getCameraPlanes(
+      renderSize.width / renderSize.height,
+      halfZSize,
+      Math.max(xSize, ySize) / 2,
+    );
+    this.camera.left = -horizontal;
+    this.camera.right = horizontal;
+    this.camera.bottom = -vertical;
+    this.camera.top = vertical;
+    this.camera.position.set(xSize, ySize, zSize * 0.75);
+    this.camera.updateProjectionMatrix();
+
+    this.controls.target.set(halfXSize, halfYSize, halfZSize);
+    this.controls.update();
+
+    this.render();
+  };
+
+  private static getCameraPlanes = (aspect: number, halfZSize: number, radius: number) => {
+    if (aspect >= 1) {
+      return {
+        horizontal: radius * aspect * CAMERA_OFFSET_FACTOR,
+        vertical: halfZSize * CAMERA_OFFSET_FACTOR,
+      };
+    }
+    return {
+      horizontal: radius * CAMERA_OFFSET_FACTOR,
+      vertical: halfZSize / aspect * CAMERA_OFFSET_FACTOR,
+    };
+  };
+}
+
+export class DefaultVolumeRenderer extends VolumeRendererBase {
+  public setRenderParameters = ({renderThreshold}: IRenderParameters) => {
+    if (!this.material) {
+      return;
+    }
+
+    (this.material.uniforms as IDefaultShaderUniforms).u_renderthreshold.value = renderThreshold;
+
+    this.render();
+  };
+
+  protected getShaderMaterial = (data: THREE.Data3DTexture, size: THREE.Vector3): THREE.ShaderMaterial => createDefaultShaderMaterial({
+    data,
+    size,
+    cmData: this.cmTexture,
+    clipping: true,
+  });
+}
+
+export class CustomVolumeRenderer extends VolumeRendererBase {
+  public setRenderParameters = ({renderThreshold}: IRenderParameters) => {
+    if (!this.material) {
+      return;
+    }
+
+    (this.material.uniforms as SoilShaderUniforms).u_render_threshold.value = renderThreshold;
+
+    this.render();
+  };
+
+  protected getShaderMaterial = (data: THREE.Data3DTexture, size: THREE.Vector3): THREE.ShaderMaterial => createCustomShaderMaterial({
+    data,
+    size,
+    cmData: this.cmTexture,
+    clipping: true,
+    maxDistance: new THREE.Vector3(0.5, 1.0, 1.0),
+  });
 }
