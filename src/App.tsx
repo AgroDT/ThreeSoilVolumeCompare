@@ -1,11 +1,19 @@
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {Graphic} from './features/gltf/Graphic';
 import {VolumeRendererComp} from './features/volume/VolumeRenderer';
+import {usePerformance} from './hooks/usePerformance';
 
 import './App.css'
 
 function App() {
   const [activeTabIdx, setActiveTabIdx] = useState(0);
+
+  const {trackFPS} = usePerformance();
+
+  useEffect(() => {
+    const fpsObserver = trackFPS(console.log);
+    fpsObserver()
+  }, [])
 
   return (
     <div className='container'>
