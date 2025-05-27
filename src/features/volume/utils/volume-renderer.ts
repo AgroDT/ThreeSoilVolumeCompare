@@ -29,13 +29,13 @@ type IRenderParameters = {
 };
 
 interface IVolumeRendererResources {
-  scene: THREE.Scene;
-  renderer: THREE.WebGLRenderer;
-  camera: THREE.OrthographicCamera;
-  controls: OrbitControls;
-  volumeLoader: ZstdVolumeLoader;
-  cmTexture: THREE.Texture;
-  controlsEvents?: Partial<IControlsEventHandlers>;
+  scene: THREE.Scene,
+  renderer: THREE.WebGLRenderer,
+  camera: THREE.OrthographicCamera,
+  controls: OrbitControls,
+  volumeLoader: ZstdVolumeLoader,
+  cmTexture: THREE.Texture,
+  controlsEvents?: Partial<IControlsEventHandlers>,
 }
 
 async function initializeVolumeRendererResources({
@@ -192,7 +192,7 @@ export abstract class VolumeRendererBase {
     const {horizontal, vertical} = VolumeRendererBase.getCameraPlanes(
       renderSize.width / renderSize.height,
       halfZSize,
-      Math.max(xSize, ySize) / 2,
+      Math.max(xSize, ySize) / 2
     );
     this.camera.left = -horizontal;
     this.camera.right = horizontal;
@@ -214,6 +214,7 @@ export abstract class VolumeRendererBase {
         vertical: halfZSize * CAMERA_OFFSET_FACTOR,
       };
     }
+
     return {
       horizontal: radius * CAMERA_OFFSET_FACTOR,
       vertical: halfZSize / aspect * CAMERA_OFFSET_FACTOR,

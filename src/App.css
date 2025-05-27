@@ -25,7 +25,7 @@
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
 
-.tabs-container {
+.tabs-container, .models-container {
   display: flex;
   flex: 0 0 auto;
   gap: 10px;

@@ -4,7 +4,7 @@ import {initializeCustomVolumeRenderer, initializeDefaultVolumeRenderer, type Vo
 import styles from './VolumeRenderer.module.scss';
 
 interface IVolumeRendererProps {
-  shaderType: 'default' | 'custom';
+  shaderType: 'default' | 'custom',
 }
 
 export const VolumeRendererComp: React.FC<IVolumeRendererProps> = ({shaderType}) => {
@@ -25,7 +25,7 @@ export const VolumeRendererComp: React.FC<IVolumeRendererProps> = ({shaderType})
         return;
       }
 
-      rendererRef.current = volumeRenderer
+      rendererRef.current = volumeRenderer;
       containerRef.current?.appendChild(volumeRenderer.webGLRenderer.domElement);
       volumeRenderer.webGLRenderer.setPixelRatio(window.devicePixelRatio);
       volumeRenderer.loadVolume(`${import.meta.env.VITE_REPO_NAME ?? ''}/g1r01-010_020-pores.raw.zst`);
@@ -36,12 +36,15 @@ export const VolumeRendererComp: React.FC<IVolumeRendererProps> = ({shaderType})
         containerRef.current?.removeChild(rendererRef.current.webGLRenderer.domElement);
         rendererRef.current.dispose();
 
-        rendererRef.current = null
+        rendererRef.current = null;
       }
-    }
-  }, [])
+    };
+  }, []);
 
   return (
-    <div ref={containerRef} className={styles.volumeRendererContainer}/>
-  )
-}
+    <div
+      ref={containerRef}
+      className={styles.volumeRendererContainer}
+    />
+  );
+};
