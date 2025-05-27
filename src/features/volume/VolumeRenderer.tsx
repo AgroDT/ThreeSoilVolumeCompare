@@ -5,9 +5,10 @@ import styles from './VolumeRenderer.module.scss';
 
 interface IVolumeRendererProps {
   shaderType: 'default' | 'custom',
+  modelType: 'pores' | 'solids',
 }
 
-export const VolumeRendererComp: React.FC<IVolumeRendererProps> = ({shaderType}) => {
+export const VolumeRendererComp: React.FC<IVolumeRendererProps> = ({shaderType, modelType}) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<VolumeRendererBase | null>(null);
 
@@ -19,6 +20,7 @@ export const VolumeRendererComp: React.FC<IVolumeRendererProps> = ({shaderType})
     const {width, height} = containerRef.current.getBoundingClientRect();
 
     const initialize = shaderType === 'custom' ? initializeCustomVolumeRenderer : initializeDefaultVolumeRenderer;
+    const assetName = modelType === 'pores' ? 'g1r03_010-020_0750_pores.raw.zst' : 'g1r03_010-020_0750_solids.raw.zst';
 
     initialize({width, height}).then(volumeRenderer => {
       if (rendererRef.current) {
@@ -28,7 +30,7 @@ export const VolumeRendererComp: React.FC<IVolumeRendererProps> = ({shaderType})
       rendererRef.current = volumeRenderer;
       containerRef.current?.appendChild(volumeRenderer.webGLRenderer.domElement);
       volumeRenderer.webGLRenderer.setPixelRatio(window.devicePixelRatio);
-      volumeRenderer.loadVolume(`${import.meta.env.VITE_REPO_NAME ?? ''}/g1r01-010_020-pores.raw.zst`);
+      volumeRenderer.loadVolume(`${import.meta.env.VITE_REPO_NAME ?? ''}/${assetName}`);
     });
 
     return () => {
@@ -39,7 +41,7 @@ export const VolumeRendererComp: React.FC<IVolumeRendererProps> = ({shaderType})
         rendererRef.current = null;
       }
     };
-  }, []);
+  }, [modelType]);
 
   return (
     <div

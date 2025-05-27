@@ -6,8 +6,13 @@ import * as THREE from 'three';
 
 import './Graphic.css';
 
-export const Graphic: React.FC = () => {
+interface IGraphicProps {
+  modelType: 'pores' | 'solids',
+}
+
+export const Graphic: React.FC<IGraphicProps> = ({modelType}) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const assetUrl = modelType === 'pores' ? 'g1r1_10-20__rec0000_bin_pores.gltf' : 'g1r1_10-20__rec0000_bin_solids.gltf';
 
   return (
     <div className='container'>
@@ -24,7 +29,7 @@ export const Graphic: React.FC = () => {
           <directionalLight position={[-10, -10, -10]}/>
           <Suspense fallback={<LoadingFallback/>}>
             <ModelLoader
-              url={`${import.meta.env.VITE_REPO_NAME ?? ''}/g1r1_10-20__rec0000_bin_pores.gltf`}
+              url={`${import.meta.env.VITE_REPO_NAME ?? ''}/${assetUrl}`}
               color={0xFFCF48}
             />
           </Suspense>

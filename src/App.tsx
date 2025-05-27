@@ -6,6 +6,7 @@ import './App.css';
 
 function App() {
   const [activeTabIdx, setActiveTabIdx] = useState(0);
+  const [modelType, setModelType] = useState<'solids' | 'pores'>('pores');
 
   return (
     <div className='container'>
@@ -30,20 +31,40 @@ function App() {
             Custom shader
           </button>
         </div>
+        <div className='models-container'>
+          <button
+            className={`tab ${modelType === 'solids' ? 'tab_active' : ''}`}
+            onClick={() => setModelType('solids')}
+          >
+            Solids
+          </button>
+          <button
+            className={`tab ${modelType === 'pores' ? 'tab_active' : ''}`}
+            onClick={() => setModelType('pores')}
+          >
+            Pores
+          </button>
+        </div>
       </div>
       {!activeTabIdx && (
         <div className='tab-content'>
-          <Graphic/>
+          <Graphic modelType={modelType}/>
         </div>
       )}
       {activeTabIdx === 1 && (
         <div className='tab-content'>
-          <VolumeRendererComp shaderType='default'/>
+          <VolumeRendererComp
+            shaderType='default'
+            modelType={modelType}
+          />
         </div>
       )}
       {activeTabIdx === 2 && (
         <div className='tab-content'>
-          <VolumeRendererComp shaderType='custom'/>
+          <VolumeRendererComp
+            shaderType='custom'
+            modelType={modelType}
+          />
         </div>
       )}
     </div>
