@@ -1,14 +1,17 @@
-import {useEffect} from 'react';
+import {useEffect, useContext} from 'react';
 import {useGLTF, OrbitControls} from '@react-three/drei';
 import {AxesHelper, Box3, Mesh, Vector3} from 'three';
 import {useThree} from '@react-three/fiber';
+import {PerformanceContext} from '../../context/PerformanceProvider';
 
 interface IModelLoader {
   url: string
   color: number
+  loadStartTime: number
 }
 
-export const ModelLoader: React.FC<IModelLoader> = ({url, color}) => {
+export const ModelLoader: React.FC<IModelLoader> = ({ url, color, loadStartTime }) => {
+  const {setTimeToPaint} = useContext(PerformanceContext);
   const { scene: gltfScene } = useGLTF(url);
   const { scene: currentScene, camera, gl } = useThree();
 
@@ -34,6 +37,13 @@ export const ModelLoader: React.FC<IModelLoader> = ({url, color}) => {
 
     const axesHelper = new AxesHelper(maxSize);
     currentScene.add(currentModel, axesHelper);
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const totalTime = performance.now() - loadStartTime;
+        setTimeToPaint(totalTime);
+      });
+    });
 
     return () => {
       currentScene.remove(currentModel);

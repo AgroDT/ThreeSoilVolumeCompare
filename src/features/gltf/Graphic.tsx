@@ -8,6 +8,7 @@ import './Graphic.css';
 
 export const Graphic: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null)
+  const loadStartTime = useRef(performance.now());
 
   return (
     <div className='container'>
@@ -20,7 +21,11 @@ export const Graphic: React.FC = () => {
           <directionalLight position={[10, 10, 10]} />
           <directionalLight position={[-10, -10, -10]} />
           <Suspense fallback={<LoadingFallback />}>
-            <ModelLoader url={`${import.meta.env.VITE_REPO_NAME ?? ''}/g1r1_10-20__rec0000_bin_pores.gltf`} color={0xFFCF48}/>
+            <ModelLoader
+              url={`${import.meta.env.VITE_REPO_NAME ?? ''}/g1r1_10-20__rec0000_bin_pores.gltf`}
+              color={0xFFCF48}
+              loadStartTime={loadStartTime.current}
+            />
           </Suspense>
         </Canvas>
       </div>
