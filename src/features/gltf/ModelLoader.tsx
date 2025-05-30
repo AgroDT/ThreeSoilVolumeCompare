@@ -10,7 +10,7 @@ interface IModelLoader {
   loadStartTime: number,
 }
 
-export const ModelLoader: React.FC<IModelLoader> = ({ url, color, loadStartTime }) => {
+export const ModelLoader: React.FC<IModelLoader> = ({url, color, loadStartTime}) => {
   const {setTimeToPaint} = useContext(PerformanceContext);
   const {scene: gltfScene} = useGLTF(url);
   const {scene: currentScene, camera, gl} = useThree();

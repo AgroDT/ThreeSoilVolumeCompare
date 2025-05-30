@@ -39,7 +39,6 @@ export const VolumeRendererComp: React.FC<IVolumeRendererProps> = ({shaderType, 
       const checkFirstRender = () => {
         if (isFirstRender.current && rendererRef.current) {
           const totalTime = performance.now() - loadStartTime.current;
-          console.log({totalTime})
           setTimeToPaint(totalTime);
           isFirstRender.current = false;
         } else {
