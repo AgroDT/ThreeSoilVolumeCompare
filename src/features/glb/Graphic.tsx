@@ -12,7 +12,7 @@ interface IGraphicProps {
 
 export const Graphic: React.FC<IGraphicProps> = ({modelType}) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const assetUrl = modelType === 'pores' ? 'g1r1_10-20__rec0000_bin_pores.gltf' : 'g1r1_10-20__rec0000_bin_solids.gltf';
+  const assetUrl = modelType === 'pores' ? 'g2r01_140-150_0750_pores.glb' : 'g2r01_140-150_0750_solids.glb';
   const loadStartTime = useRef(performance.now());
 
   return (

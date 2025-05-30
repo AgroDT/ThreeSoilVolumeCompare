@@ -1,12 +1,12 @@
 import {useState} from 'react';
-import {Graphic} from './features/gltf/Graphic';
+import {Graphic} from './features/glb/Graphic';
 import {VolumeRendererComp} from './features/volume/VolumeRenderer';
 
 import './App.css';
 
 function App() {
   const [activeTabIdx, setActiveTabIdx] = useState(0);
-  const [modelType, setModelType] = useState<'solids' | 'pores'>('pores');
+  const [modelType, setModelType] = useState<'solids' | 'pores'>('solids');
 
   return (
     <div className='container'>
@@ -16,7 +16,7 @@ function App() {
             className={`tab ${!activeTabIdx ? 'tab_active' : ''}`}
             onClick={() => setActiveTabIdx(0)}
           >
-            GLTF
+            GLB
           </button>
           <button
             className={`tab ${activeTabIdx === 1 ? 'tab_active' : ''}`}
