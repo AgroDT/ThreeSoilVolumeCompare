@@ -13,6 +13,7 @@ interface IGraphicProps {
 export const Graphic: React.FC<IGraphicProps> = ({modelType}) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const assetUrl = modelType === 'pores' ? 'g1r1_10-20__rec0000_bin_pores.gltf' : 'g1r1_10-20__rec0000_bin_solids.gltf';
+  const loadStartTime = useRef(performance.now());
 
   return (
     <div className='container'>
@@ -31,6 +32,7 @@ export const Graphic: React.FC<IGraphicProps> = ({modelType}) => {
             <ModelLoader
               url={`${import.meta.env.VITE_REPO_NAME ?? ''}/${assetUrl}`}
               color={0xFFCF48}
+              loadStartTime={loadStartTime.current}
             />
           </Suspense>
         </Canvas>
