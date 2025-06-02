@@ -7,10 +7,9 @@ import {PerformanceContext} from '../../context/PerformanceProvider';
 interface IModelLoader {
   url: string,
   color: number,
-  loadStartTime: number,
 }
 
-export const ModelLoader: React.FC<IModelLoader> = ({url, color, loadStartTime}) => {
+export const ModelLoader: React.FC<IModelLoader> = ({url, color}) => {
   const {setTimeToPaint} = useContext(PerformanceContext);
   const {scene: gltfScene} = useGLTF(url);
   const {scene: currentScene, camera, gl} = useThree();
@@ -39,10 +38,9 @@ export const ModelLoader: React.FC<IModelLoader> = ({url, color, loadStartTime})
     currentScene.add(currentModel, axesHelper);
 
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        const totalTime = performance.now() - loadStartTime;
-        setTimeToPaint(totalTime);
-      });
+      performance.mark('graphicEnd');
+      const renderMeasure = performance.measure('graphicDuration', 'graphicStart', 'graphicEnd');
+      setTimeToPaint(renderMeasure.duration);
     });
 
     return () => {

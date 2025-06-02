@@ -1,23 +1,23 @@
 import {useContext, useEffect, useRef} from 'react';
 import {initializeCustomVolumeRenderer, initializeDefaultVolumeRenderer, type VolumeRendererBase} from './utils/volume-renderer';
+import {ModelSize, ModelType} from '../../utils/const';
 
 import styles from './VolumeRenderer.module.scss';
 import {PerformanceContext} from '../../context/PerformanceProvider';
 
 interface IVolumeRendererProps {
   shaderType: 'default' | 'custom',
-  modelType: 'pores' | 'solids',
+  modelType: ModelType,
+  modelSize: ModelSize,
 }
 
-export const VolumeRendererComp: React.FC<IVolumeRendererProps> = ({shaderType, modelType}) => {
+export const VolumeRendererComp: React.FC<IVolumeRendererProps> = ({shaderType, modelType, modelSize}) => {
   const {setTimeToPaint} = useContext(PerformanceContext);
   const containerRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<VolumeRendererBase | null>(null);
-  const loadStartTime = useRef(performance.now());
-  const rafId = useRef<number>();
-  const isFirstRender = useRef(true);
 
   useEffect(() => {
+    performance.mark('volumeStart');
     if (!containerRef.current) {
       return;
     }
@@ -25,7 +25,9 @@ export const VolumeRendererComp: React.FC<IVolumeRendererProps> = ({shaderType, 
     const {width, height} = containerRef.current.getBoundingClientRect();
 
     const initialize = shaderType === 'custom' ? initializeCustomVolumeRenderer : initializeDefaultVolumeRenderer;
-    const assetName = modelType === 'pores' ? 'g1r03_010-020_0750_pores.raw.zst' : 'g1r03_010-020_0750_solids.raw.zst';
+    const assetName = modelSize === ModelSize.SM
+      ? modelType === ModelType.PORES ? 'g2r01_140-150_0375_pores.raw.zst' : 'g2r01_140-150_0375_solids.raw.zst'
+      : modelType === ModelType.PORES ? 'g1r03_010-020_0750_pores.raw.zst' : 'g1r03_010-020_0750_solids.raw.zst';
 
     initialize({width, height}).then(volumeRenderer => {
       if (rendererRef.current) {
@@ -36,25 +38,18 @@ export const VolumeRendererComp: React.FC<IVolumeRendererProps> = ({shaderType, 
       containerRef.current?.appendChild(volumeRenderer.webGLRenderer.domElement);
       volumeRenderer.webGLRenderer.setPixelRatio(window.devicePixelRatio);
 
-      const checkFirstRender = () => {
-        if (isFirstRender.current && rendererRef.current) {
-          const totalTime = performance.now() - loadStartTime.current;
-          setTimeToPaint(totalTime);
-          isFirstRender.current = false;
-        } else {
-          rafId.current = requestAnimationFrame(checkFirstRender);
-        }
-      };
-
-      rafId.current = requestAnimationFrame(checkFirstRender);
+      requestAnimationFrame(() => {
+        performance.mark('volumeEnd');
+        const totalTime = performance.measure('volumeMeasure', 'volumeStart', 'volumeEnd').duration;
+        setTimeToPaint(totalTime);
+      });
 
       volumeRenderer.loadVolume(`${import.meta.env.VITE_REPO_NAME ?? ''}/${assetName}`);
     });
 
     return () => {
-      if (rafId.current) {
-        cancelAnimationFrame(rafId.current);
-      }
+      performance.clearMarks();
+      performance.clearMeasures();
       if (rendererRef.current) {
         containerRef.current?.removeChild(rendererRef.current.webGLRenderer.domElement);
         rendererRef.current.dispose();
@@ -62,7 +57,7 @@ export const VolumeRendererComp: React.FC<IVolumeRendererProps> = ({shaderType, 
         rendererRef.current = null;
       }
     };
-  }, [modelType]);
+  }, [modelType, modelSize]);
 
   return (
     <div

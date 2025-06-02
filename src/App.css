@@ -14,7 +14,7 @@
 
 .switchers {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
 }
 
@@ -31,7 +31,18 @@
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
 
-.tabs-container, .models-container {
+.models-container {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  width: 200px;
+}
+
+.model-tab {
+  flex: 1 1 auto;
+}
+
+.tabs-container {
   display: flex;
   flex: 0 0 auto;
   gap: 10px;

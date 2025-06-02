@@ -1,19 +1,32 @@
-import {Suspense, useRef} from 'react';
+import {Suspense, useEffect, useRef} from 'react';
 import {Canvas} from '@react-three/fiber';
 import {LoadingFallback} from './LoadingFallback';
 import {ModelLoader} from './ModelLoader';
 import * as THREE from 'three';
+import {ModelSize, ModelType} from '../../utils/const';
 
 import './Graphic.css';
 
 interface IGraphicProps {
-  modelType: 'pores' | 'solids',
+  modelType: ModelType,
+  modelSize: ModelSize,
 }
 
-export const Graphic: React.FC<IGraphicProps> = ({modelType}) => {
+export const Graphic: React.FC<IGraphicProps> = ({modelType, modelSize}) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const assetUrl = modelType === 'pores' ? 'g2r01_140-150_0750_pores.glb' : 'g2r01_140-150_0750_solids.glb';
-  const loadStartTime = useRef(performance.now());
+
+  const assetUrl = modelSize === ModelSize.SM
+    ? modelType === ModelType.PORES ? 'g2r01_140-150_0375_pores.glb' : 'g2r01_140-150_0375_solids.glb'
+    : modelType === ModelType.PORES ? 'g2r01_140-150_0750_pores.glb' : 'g2r01_140-150_0750_solids.glb';
+
+  useEffect(() => {
+    performance.mark('graphicStart');
+
+    return () => {
+      performance.clearMarks();
+      performance.clearMeasures();
+    };
+  }, [modelType]);
 
   return (
     <div className='container'>
@@ -32,7 +45,6 @@ export const Graphic: React.FC<IGraphicProps> = ({modelType}) => {
             <ModelLoader
               url={`${import.meta.env.VITE_REPO_NAME ?? ''}/${assetUrl}`}
               color={0xFFCF48}
-              loadStartTime={loadStartTime.current}
             />
           </Suspense>
         </Canvas>

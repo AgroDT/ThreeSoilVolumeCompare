@@ -1,12 +1,14 @@
 import {useState} from 'react';
 import {Graphic} from './features/glb/Graphic';
 import {VolumeRendererComp} from './features/volume/VolumeRenderer';
+import {ModelSize, ModelType} from './utils/const';
 
 import './App.css';
 
 function App() {
   const [activeTabIdx, setActiveTabIdx] = useState(0);
-  const [modelType, setModelType] = useState<'solids' | 'pores'>('solids');
+  const [modelType, setModelType] = useState<ModelType>(ModelType.SOLIDS);
+  const [size, setSize] = useState<ModelSize>(ModelSize.SM);
 
   return (
     <div className='container'>
@@ -33,22 +35,37 @@ function App() {
         </div>
         <div className='models-container'>
           <button
-            className={`tab ${modelType === 'solids' ? 'tab_active' : ''}`}
-            onClick={() => setModelType('solids')}
+            className={`model-tab ${modelType === ModelType.SOLIDS ? 'tab_active' : ''}`}
+            onClick={() => setModelType(ModelType.SOLIDS)}
           >
             Solids
           </button>
           <button
-            className={`tab ${modelType === 'pores' ? 'tab_active' : ''}`}
-            onClick={() => setModelType('pores')}
+            className={`model-tab ${modelType === ModelType.PORES ? 'tab_active' : ''}`}
+            onClick={() => setModelType(ModelType.PORES)}
           >
             Pores
+          </button>
+          <button
+            className={`model-tab ${size === ModelSize.SM ? 'tab_active' : ''}`}
+            onClick={() => setSize(ModelSize.SM)}
+          >
+            375 vx
+          </button>
+          <button
+            className={`model-tab ${size === ModelSize.MD ? 'tab_active' : ''}`}
+            onClick={() => setSize(ModelSize.MD)}
+          >
+            750 vx
           </button>
         </div>
       </div>
       {!activeTabIdx && (
         <div className='tab-content'>
-          <Graphic modelType={modelType}/>
+          <Graphic
+            modelType={modelType}
+            modelSize={size}
+          />
         </div>
       )}
       {activeTabIdx === 1 && (
@@ -56,6 +73,7 @@ function App() {
           <VolumeRendererComp
             shaderType='default'
             modelType={modelType}
+            modelSize={size}
           />
         </div>
       )}
@@ -64,6 +82,7 @@ function App() {
           <VolumeRendererComp
             shaderType='custom'
             modelType={modelType}
+            modelSize={size}
           />
         </div>
       )}
