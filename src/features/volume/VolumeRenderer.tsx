@@ -27,7 +27,7 @@ export const VolumeRendererComp: React.FC<IVolumeRendererProps> = ({shaderType, 
     const initialize = shaderType === 'custom' ? initializeCustomVolumeRenderer : initializeDefaultVolumeRenderer;
     const assetName = modelSize === ModelSize.SM
       ? modelType === ModelType.PORES ? 'g2r01_140-150_0375_pores.raw.zst' : 'g2r01_140-150_0375_solids.raw.zst'
-      : modelType === ModelType.PORES ? 'g1r03_010-020_0750_pores.raw.zst' : 'g1r03_010-020_0750_solids.raw.zst';
+      : modelType === ModelType.PORES ? 'g2r01_140-150_0750_pores.raw.zst' : 'g2r01_140-150_0750_solids.raw.zst';
 
     initialize({width, height}).then(volumeRenderer => {
       if (rendererRef.current) {

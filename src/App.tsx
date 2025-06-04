@@ -24,7 +24,7 @@ function App() {
             className={`tab ${activeTabIdx === 1 ? 'tab_active' : ''}`}
             onClick={() => setActiveTabIdx(1)}
           >
-            Three.js VolumeShader
+            Three.js VolumeRenderShader1
           </button>
           <button
             className={`tab ${activeTabIdx === 2 ? 'tab_active' : ''}`}
