@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@agrodt/eslint-config": "^2.0.4",
     "@agrodt/three-soil-volume-shader": "^0.1.0",
     "@agrodt/three-zstd-volume-loader": "^0.1.1",
     "@react-three/drei": "^9.120.4",
@@ -28,9 +29,6 @@
     "@types/three": "^0.171.0",
     "@vitejs/plugin-react-swc": "^3.5.0",
     "eslint": "^9.15.0",
-    "eslint-plugin-react-hooks": "^5.0.0",
-    "eslint-plugin-react-refresh": "^0.4.14",
-    "globals": "^15.12.0",
     "sass": "^1.85.1",
     "typescript": "~5.6.2",
     "typescript-eslint": "^8.15.0",
@@ -40,5 +38,6 @@
     "@parcel/watcher",
     "@swc/core",
     "esbuild"
-  ]
+  ],
+  "packageManager": "pnpm@10.11.0+sha512.6540583f41cc5f628eb3d9773ecee802f4f9ef9923cc45b69890fb47991d4b092964694ec3a4f738a420c918a333062c8b925d312f42e4f0c263eb603551f977"
 }

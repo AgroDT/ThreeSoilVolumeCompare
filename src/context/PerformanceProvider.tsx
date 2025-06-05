@@ -6,22 +6,30 @@ const FPSCounter = ({timeToPaint}: {timeToPaint?: number}) => {
 
   useEffect(() => {
     getFps(setFps);
-  }, [])
+  }, []);
 
   return (
     <div>
       <div>
-        <span>FPS: {fps}</span>
-        <br />
-        <span>Time to first render: {timeToPaint?.toFixed(0)} ms.</span>
+        <span>
+          FPS:
+          {fps}
+        </span>
+        <br/>
+        <span>
+          Time to first render:
+          {timeToPaint?.toFixed(0)}
+          {' '}
+          ms.
+        </span>
       </div>
     </div>
-  )
-}
+  );
+};
 
 type PerformanceContextType = {
-  setTimeToPaint: React.Dispatch<React.SetStateAction<number | undefined>>
-}
+  setTimeToPaint: React.Dispatch<React.SetStateAction<number | undefined>>,
+};
 
 export const PerformanceContext = createContext({} as PerformanceContextType);
 
@@ -33,5 +41,5 @@ export const PerformanceProvider: React.FC<PropsWithChildren> = ({children}) => 
       {children}
       <FPSCounter timeToPaint={timeToPaint}/>
     </PerformanceContext.Provider>
-  )
-}
+  );
+};

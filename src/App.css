@@ -12,6 +12,12 @@
   gap: 20px;
 }
 
+.switchers {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;
@@ -23,6 +29,17 @@
 }
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+.models-container {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  width: 200px;
+}
+
+.model-tab {
+  flex: 1 1 auto;
 }
 
 .tabs-container {
