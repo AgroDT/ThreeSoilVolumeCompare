@@ -1,0 +1,8 @@
+.stats-container {
+  width: max-content;
+}
+
+.metric {
+  display: block;
+  text-align: left;
+}

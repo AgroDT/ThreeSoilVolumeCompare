@@ -18,3 +18,14 @@ export const getFps = (callback: (fps: number) => void) => {
 
   requestAnimationFrame(loop);
 };
+
+export const calcFpsMedianAndMAD = (fpsArr: number[]) => {
+  const sortedArr = fpsArr.toSorted((prev, next) => prev - next);
+  const middle = Math.floor(sortedArr.length / 2);
+  const median = !(sortedArr.length % 2) ? (sortedArr[middle - 1] + sortedArr[middle]) / 2 : sortedArr[middle];
+
+  const sortedAbs = fpsArr.map(num => Math.abs(num - median)).toSorted((prev, next) => prev - next);
+  const abs = !(sortedAbs.length % 2) ? (sortedAbs[middle - 1] + sortedAbs[middle]) / 2 : sortedAbs[middle];
+
+  return {median, mad: abs};
+};
