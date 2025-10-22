@@ -1,4 +1,4 @@
-import {createContext, PropsWithChildren, useState, useEffect, useRef} from 'react';
+import {createContext, PropsWithChildren, useState, useEffect, useRef, useCallback} from 'react';
 import {getFps, calcFpsMedianAndMAD} from '../utils/performance';
 import './PerformanceProvider.css';
 
@@ -9,13 +9,31 @@ type Stats = {
   memory: Values | null,
 };
 
-const FPSCounter = ({timeToPaint}: {timeToPaint?: number}) => {
+type FPSCounterProps = {
+  timeToPaint?: number,
+  isPerformanceRecording: boolean,
+  setIsPerformanceRecording: React.Dispatch<React.SetStateAction<boolean>>,
+};
+
+const FPSCounter: React.FC<FPSCounterProps> = ({timeToPaint, isPerformanceRecording, setIsPerformanceRecording}) => {
   const [stats, setStats] = useState<Stats>({
     fps: {val: null, stats: null},
     memory: null,
   });
   const fpsHistory = useRef<number[]>([]);
   const ramMemory = useRef<number[]>([]);
+  const fpsReport = useRef<number[]>([]);
+
+  const downloadReport = useCallback((report: number[]) => {
+    const blob = new Blob([JSON.stringify({fps: report})], {type: 'application/json;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'report.json';
+    link.click();
+    URL.revokeObjectURL(url);
+    link.remove();
+  }, []);
 
   useEffect(() => {
     getFps(fps => {
@@ -55,6 +73,30 @@ const FPSCounter = ({timeToPaint}: {timeToPaint?: number}) => {
     };
   }, []);
 
+  useEffect(() => {
+    let result: ReturnType<typeof getFps>;
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    if (isPerformanceRecording) {
+      result = getFps(fps => fpsReport.current.push(fps));
+
+      timeoutId = setTimeout(() => {
+        cancelAnimationFrame(result.animationId);
+        setIsPerformanceRecording(false);
+        downloadReport(fpsReport.current);
+        fpsReport.current = [];
+      }, 60000);
+    }
+
+    return () => {
+      if (result && timeoutId) {
+        cancelAnimationFrame(result.animationId);
+        clearTimeout(timeoutId);
+        fpsReport.current = [];
+      }
+    };
+  }, [isPerformanceRecording]);
+
   return (
     <div>
       <div className='stats-container'>
@@ -86,7 +128,9 @@ const FPSCounter = ({timeToPaint}: {timeToPaint?: number}) => {
 };
 
 type PerformanceContextType = {
+  isPerformanceRecording: boolean,
   setTimeToPaint: React.Dispatch<React.SetStateAction<number | undefined>>,
+  setIsPerformanceRecording: React.Dispatch<React.SetStateAction<boolean>>,
 };
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -94,11 +138,22 @@ export const PerformanceContext = createContext({} as PerformanceContextType);
 
 export const PerformanceProvider: React.FC<PropsWithChildren> = ({children}) => {
   const [timeToPaint, setTimeToPaint] = useState<number>();
+  const [isPerformanceRecording, setIsPerformanceRecording] = useState(false);
 
   return (
-    <PerformanceContext.Provider value={{setTimeToPaint}}>
+    <PerformanceContext.Provider
+      value={{
+        isPerformanceRecording,
+        setTimeToPaint,
+        setIsPerformanceRecording,
+      }}
+    >
       {children}
-      <FPSCounter timeToPaint={timeToPaint}/>
+      <FPSCounter
+        timeToPaint={timeToPaint}
+        isPerformanceRecording={isPerformanceRecording}
+        setIsPerformanceRecording={setIsPerformanceRecording}
+      />
     </PerformanceContext.Provider>
   );
 };

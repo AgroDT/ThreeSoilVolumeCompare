@@ -18,6 +18,23 @@
   justify-content: space-between;
 }
 
+.switchers-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.render-test {
+  width: 100%;
+  background-color: #28A745;
+  transition: background-color 300ms ease-in-out;
+  
+  &:disabled {
+    background-color: #A9D6A4;
+    color: inherit;
+  }
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;

@@ -1,18 +1,20 @@
-import {useEffect, useContext} from 'react';
+import {useEffect, useContext, useRef} from 'react';
 import {useGLTF, OrbitControls} from '@react-three/drei';
 import {AxesHelper, Box3, Mesh, Vector3} from 'three';
-import {useThree} from '@react-three/fiber';
+import {useFrame, useThree} from '@react-three/fiber';
 import {PerformanceContext} from '../../context/PerformanceProvider';
 
 interface IModelLoader {
   url: string,
   color: number,
+  testPerformance?: boolean,
 }
 
 export const ModelLoader: React.FC<IModelLoader> = ({url, color}) => {
-  const {setTimeToPaint} = useContext(PerformanceContext);
+  const {setTimeToPaint, isPerformanceRecording} = useContext(PerformanceContext);
   const {scene: gltfScene} = useGLTF(url);
   const {scene: currentScene, camera, gl} = useThree();
+  const angleRef = useRef<number>(0);
 
   useEffect(() => {
     const currentModel = gltfScene.clone();
@@ -59,6 +61,16 @@ export const ModelLoader: React.FC<IModelLoader> = ({url, color}) => {
       });
     };
   }, [url, gltfScene, currentScene]);
+
+  useFrame(() => {
+    if (isPerformanceRecording) {
+      angleRef.current += 0.05;
+      const radius = 200;
+      camera.position.setX(Math.sin(angleRef.current) * radius);
+      camera.position.setY(Math.cos(angleRef.current) * radius);
+      camera.lookAt(0, 0, 0);
+    }
+  });
 
   return (
     <>
