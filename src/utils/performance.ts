@@ -1,6 +1,7 @@
 export const getFps = (callback: (fps: number) => void) => {
   let prevTime = Date.now();
   let frames = 0;
+  const result = {} as {animationId: number};
 
   const loop = () => {
     const time = Date.now();
@@ -13,10 +14,12 @@ export const getFps = (callback: (fps: number) => void) => {
       callback(fps);
     }
 
-    requestAnimationFrame(loop);
+    result.animationId = requestAnimationFrame(loop);
   };
 
-  requestAnimationFrame(loop);
+  result.animationId = requestAnimationFrame(loop);
+
+  return result;
 };
 
 export const calcFpsMedianAndMAD = (fpsArr: number[]) => {

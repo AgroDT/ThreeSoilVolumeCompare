@@ -1,6 +1,7 @@
 import {useState} from 'react';
 import {Graphic} from './features/glb/Graphic';
 import {VolumeRendererComp} from './features/volume/VolumeRenderer';
+import {PerformanceRecorder} from './features/performance-recorder/PerformanceRecorder';
 import {ModelSize, ModelType} from './utils/const';
 
 import './App.css';
@@ -13,25 +14,28 @@ function App() {
   return (
     <div className='container'>
       <div className='switchers'>
-        <div className='tabs-container'>
-          <button
-            className={`tab ${!activeTabIdx ? 'tab_active' : ''}`}
-            onClick={() => setActiveTabIdx(0)}
-          >
-            GLB
-          </button>
-          <button
-            className={`tab ${activeTabIdx === 1 ? 'tab_active' : ''}`}
-            onClick={() => setActiveTabIdx(1)}
-          >
-            Three.js VolumeRenderShader1
-          </button>
-          <button
-            className={`tab ${activeTabIdx === 2 ? 'tab_active' : ''}`}
-            onClick={() => setActiveTabIdx(2)}
-          >
-            Custom shader
-          </button>
+        <div className='switchers-container'>
+          <div className='tabs-container'>
+            <button
+              className={`tab ${!activeTabIdx ? 'tab_active' : ''}`}
+              onClick={() => setActiveTabIdx(0)}
+            >
+              GLB
+            </button>
+            <button
+              className={`tab ${activeTabIdx === 1 ? 'tab_active' : ''}`}
+              onClick={() => setActiveTabIdx(1)}
+            >
+              Three.js VolumeRenderShader1
+            </button>
+            <button
+              className={`tab ${activeTabIdx === 2 ? 'tab_active' : ''}`}
+              onClick={() => setActiveTabIdx(2)}
+            >
+              Custom shader
+            </button>
+          </div>
+          <PerformanceRecorder/>
         </div>
         <div className='models-container'>
           <button
