@@ -9,30 +9,29 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@agrodt/eslint-config": "^2.0.4",
+    "@agrodt/eslint-config": "^2.0.8",
     "@agrodt/three-soil-volume-shader": "^0.1.1",
-    "@agrodt/three-zstd-volume-loader": "^0.1.3",
-    "@react-three/drei": "^9.122.0",
-    "@react-three/fiber": "^8.18.0",
+    "@agrodt/three-zstd-volume-loader": "0.2.0",
+    "@react-three/drei": "10.7.6",
+    "@react-three/fiber": "9.4.0",
     "@tanstack/react-ranger": "^0.0.4",
     "clsx": "^2.1.1",
-    "leva": "^0.9.36",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "three": "^0.174.0"
+    "leva": "0.10.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "three": "0.180.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.28.0",
-    "@types/node": "^22.15.30",
-    "@types/react": "^18.3.23",
-    "@types/react-dom": "^18.3.7",
-    "@types/three": "^0.171.0",
-    "@vitejs/plugin-react-swc": "^3.10.1",
-    "eslint": "^9.28.0",
-    "sass": "^1.89.1",
-    "typescript": "~5.6.3",
-    "typescript-eslint": "^8.33.1",
-    "vite": "^6.3.5"
+    "@eslint/js": "^9.38.0",
+    "@types/node": "24.9.1",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "@types/three": "0.180.0",
+    "@vitejs/plugin-react-swc": "4.1.0",
+    "eslint": "^9.38.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "^8.46.2",
+    "vite": "7.1.11"
   },
   "trustedDependencies": [
     "@parcel/watcher",
