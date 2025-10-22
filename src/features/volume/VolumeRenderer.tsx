@@ -2,8 +2,8 @@ import {useContext, useEffect, useRef} from 'react';
 import {initializeCustomVolumeRenderer, initializeDefaultVolumeRenderer, type VolumeRendererBase} from './utils/volume-renderer';
 import {ModelSize, ModelType} from '../../utils/const';
 
-import styles from './VolumeRenderer.module.scss';
 import {PerformanceContext} from '../../context/PerformanceProvider';
+import './VolumeRenderer.css';
 
 interface IVolumeRendererProps {
   shaderType: 'default' | 'custom',
@@ -62,7 +62,7 @@ export const VolumeRendererComp: React.FC<IVolumeRendererProps> = ({shaderType, 
   return (
     <div
       ref={containerRef}
-      className={styles.volumeRendererContainer}
+      className='renderer-container'
     />
   );
 };
